@@ -203,12 +203,51 @@ object main {
       csvContent
     }
 
-    val summaryWriter = new PrintWriter("SummaryOfResults.csv")
-    summaryWriter.write(classifyEachVariable(variableList))
-    summaryWriter.close()
+    def classifyTopTwoFeatures() : String = {
+      var csvContent = "Variable, Accuracy, ErrorRate, PercentFalsePositive, PercentFalseNegative\n"
+      val t0 = System.nanoTime()
+      //Create the label and feature vector
+      val supervised = new RFormula().setFormula("classification ~ spore + odor")
+      val fitted = supervised.fit(data)
+      val preparedDF = fitted.transform(data)
+      //split the data 70/.30
+      val Array(train, test) = preparedDF.randomSplit(Array(0.7, 0.3))
+      //Setup the random forest classifier
+      val dt = new RandomForestClassifier().setLabelCol("label").setFeaturesCol("features")
+      //Create a pipeline for cross validation
+      val pipeline = new Pipeline().setStages(Array(dt))
+      val paramGrid = new ParamGridBuilder().build()
 
-    val summaryWriterAll = new PrintWriter("SummaryOfAllVariablesResults.csv")
-    summaryWriterAll.write(classifyEverything(variableList))
-    summaryWriterAll.close()
+      val evaluator = new MulticlassClassificationEvaluator()
+        .setLabelCol("label")
+        .setPredictionCol("prediction")
+      //Set number of folds to 10
+      val cv = new CrossValidator()
+        .setEstimator(pipeline)
+        .setEvaluator(evaluator)
+        .setEstimatorParamMaps(paramGrid)
+        .setNumFolds(10)
+      //Generate the model
+      val model = cv.fit(train)
+      //Apply the model to the testing set
+      val prediction = model.transform(test)
+      val t1 = System.nanoTime()
+      val timeExpired = t1 - t0
+      println(s"Total algorithm time ${timeExpired/1e9}")
+      csvContent += s"[spore, odor], ${ConfusionMatrix(prediction, log, args(1), "TopTwoVariables" + "ConfusionMatrix.txt")}"
+      csvContent
+    }
+
+//    val summaryWriter = new PrintWriter("SummaryOfResults.csv")
+//    summaryWriter.write(classifyEachVariable(variableList))
+//    summaryWriter.close()
+//
+//    val summaryWriterAll = new PrintWriter("SummaryOfAllVariablesResults.csv")
+//    summaryWriterAll.write(classifyEverything(variableList))
+//    summaryWriterAll.close()
+
+    val summaryWriterTopTwo = new PrintWriter("SummaryOfTopTwoVariablesResults.csv")
+    summaryWriterTopTwo.write(classifyTopTwoFeatures())
+    summaryWriterTopTwo.close()
   }
 }
