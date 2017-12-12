@@ -238,13 +238,13 @@ object main {
       csvContent
     }
 
-//    val summaryWriter = new PrintWriter("SummaryOfResults.csv")
-//    summaryWriter.write(classifyEachVariable(variableList))
-//    summaryWriter.close()
-//
-//    val summaryWriterAll = new PrintWriter("SummaryOfAllVariablesResults.csv")
-//    summaryWriterAll.write(classifyEverything(variableList))
-//    summaryWriterAll.close()
+    val summaryWriter = new PrintWriter("SummaryOfResults.csv")
+    summaryWriter.write(classifyEachVariable(variableList))
+    summaryWriter.close()
+
+    val summaryWriterAll = new PrintWriter("SummaryOfAllVariablesResults.csv")
+    summaryWriterAll.write(classifyEverything(variableList))
+    summaryWriterAll.close()
 
     val summaryWriterTopTwo = new PrintWriter("SummaryOfTopTwoVariablesResults.csv")
     summaryWriterTopTwo.write(classifyTopTwoFeatures())
